@@ -7,30 +7,30 @@ use im::vector;
 use im::vector::Vector;
 
 #[derive(Clone, Debug)]
-pub enum CMD {
-    INT(i32),
-    BOOL(bool),
-    ADD,
-    SUB,
-    MUL,
-    DIV,
-    LTE,
-    GTE,
-    LT,
-    GT,
-    EQ,
-    NEQ,
-    AND,
-    OR,
-    NEG,
-    NOT,
-    ACCESS(usize),
-    CLOSURE(Vector<CMD>),
-    IFTE(Vector<CMD>, Vector<CMD>),
-    LET,
-    ENDLET,
-    APPLY,
-    RETURN,
+pub enum Cmd {
+    Int(i32),
+    Bool(bool),
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Lte,
+    Gte,
+    Lt,
+    Gt,
+    Eq,
+    Neq,
+    And,
+    Or,
+    Neg,
+    Not,
+    Access(usize),
+    Closure(Vector<Cmd>),
+    Ifte(Vector<Cmd>, Vector<Cmd>),
+    Let,
+    EndLet,
+    Apply,
+    Return,
 }
 
 #[derive(Clone, Derivative)]
@@ -38,49 +38,49 @@ pub enum CMD {
 pub enum Value {
     Int(i32),
     Bool(bool),
-    Clo(Vector<CMD>, #[derivative(Debug = "ignore")] Vector<Value>),
+    Clo(Vector<Cmd>, #[derivative(Debug = "ignore")] Vector<Value>),
 }
 
 impl Op1 {
-    fn compile(&self) -> CMD {
+    fn compile(&self) -> Cmd {
         match self {
-            Op1::Neg => CMD::NEG,
-            Op1::Not => CMD::NOT,
+            Op1::Neg => Cmd::Neg,
+            Op1::Not => Cmd::Not,
         }
     }
 }
 
 impl Op2 {
-    fn compile(&self) -> CMD {
+    fn compile(&self) -> Cmd {
         match self {
-            Op2::Add => CMD::ADD,
-            Op2::Sub => CMD::SUB,
-            Op2::Mul => CMD::MUL,
-            Op2::Div => CMD::DIV,
-            Op2::Lte => CMD::LTE,
-            Op2::Gte => CMD::GTE,
-            Op2::Lt => CMD::LT,
-            Op2::Gt => CMD::GT,
-            Op2::Eq => CMD::EQ,
-            Op2::Neq => CMD::NEQ,
-            Op2::And => CMD::AND,
-            Op2::Or => CMD::OR,
+            Op2::Add => Cmd::Add,
+            Op2::Sub => Cmd::Sub,
+            Op2::Mul => Cmd::Mul,
+            Op2::Div => Cmd::Div,
+            Op2::Lte => Cmd::Lte,
+            Op2::Gte => Cmd::Gte,
+            Op2::Lt => Cmd::Lt,
+            Op2::Gt => Cmd::Gt,
+            Op2::Eq => Cmd::Eq,
+            Op2::Neq => Cmd::Neq,
+            Op2::And => Cmd::And,
+            Op2::Or => Cmd::Or,
         }
     }
 }
 
 impl Term {
-    pub fn compile<'a>(&'a self, mut names: Vector<&'a String>) -> Vector<CMD> {
+    fn compile<'a>(&'a self, mut names: Vector<&'a String>) -> Vector<Cmd> {
         match self {
             Term::Int(i) => {
-                vector![CMD::INT(*i)]
+                vector![Cmd::Int(*i)]
             }
             Term::Bool(b) => {
-                vector![CMD::BOOL(*b)]
+                vector![Cmd::Bool(*b)]
             }
             Term::Var(x) => {
                 let i = names.index_of(&x).unwrap();
-                vector![CMD::ACCESS(i)]
+                vector![Cmd::Access(i)]
             }
             Term::Op1(opr, m) => {
                 let cmds = m.compile(names.clone());
@@ -95,24 +95,24 @@ impl Term {
                 names.push_front(x);
                 names.push_front(f);
                 let cmds = m.compile(names);
-                vector![CMD::CLOSURE(cmds + vector![CMD::RETURN])]
+                vector![Cmd::Closure(cmds + vector![Cmd::Return])]
             }
             Term::App(m, n) => {
                 let cmds1 = m.compile(names.clone());
                 let cmds2 = n.compile(names.clone());
-                cmds1 + cmds2 + vector![CMD::APPLY]
+                cmds1 + cmds2 + vector![Cmd::Apply]
             }
             Term::LetIn(x, m, n) => {
                 let cmds1 = m.compile(names.clone());
                 names.push_front(x);
                 let cmds2 = n.compile(names.clone());
-                cmds1 + vector![CMD::LET] + cmds2 + vector![CMD::ENDLET]
+                cmds1 + vector![Cmd::Let] + cmds2 + vector![Cmd::EndLet]
             }
             Term::Ifte(cond, m, n) => {
                 let cmds_cond = cond.compile(names.clone());
                 let cmds1 = m.compile(names.clone());
                 let cmds2 = n.compile(names.clone());
-                cmds_cond + vector![CMD::IFTE(cmds1, cmds2)]
+                cmds_cond + vector![Cmd::Ifte(cmds1, cmds2)]
             }
         }
     }
@@ -122,167 +122,164 @@ impl Term {
         Self::secd(Vec::new(), Vector::new(), cmds)
     }
 
-    fn secd(mut stack: Vec<Value>, mut env: Vector<Value>, mut cmds: Vector<CMD>) -> Value {
-        loop {
-            match cmds.pop_front() {
-                Some(cmd) => match cmd {
-                    CMD::INT(i) => stack.push(Value::Int(i)),
-                    CMD::BOOL(b) => stack.push(Value::Bool(b)),
-                    CMD::ADD => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i + j)),
-                            _ => panic!("bad ADD"),
+    fn secd(mut stack: Vec<Value>, mut env: Vector<Value>, mut cmds: Vector<Cmd>) -> Value {
+        while let Some(cmd) = cmds.pop_front() {
+            match cmd {
+                Cmd::Int(i) => stack.push(Value::Int(i)),
+                Cmd::Bool(b) => stack.push(Value::Bool(b)),
+                Cmd::Add => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i + j)),
+                        _ => panic!("bad Add"),
+                    }
+                }
+                Cmd::Sub => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i - j)),
+                        _ => panic!("bad Sub"),
+                    }
+                }
+                Cmd::Mul => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i * j)),
+                        _ => panic!("bad Mul"),
+                    }
+                }
+                Cmd::Div => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i / j)),
+                        _ => panic!("bad Div"),
+                    }
+                }
+                Cmd::Lte => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i <= j)),
+                        _ => panic!("bad Lte"),
+                    }
+                }
+                Cmd::Gte => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i >= j)),
+                        _ => panic!("bad Gte"),
+                    }
+                }
+                Cmd::Lt => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i < j)),
+                        _ => panic!("bad Lt"),
+                    }
+                }
+                Cmd::Gt => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i > j)),
+                        _ => panic!("bad Gt"),
+                    }
+                }
+                Cmd::Eq => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i == j)),
+                        _ => panic!("bad Eq"),
+                    }
+                }
+                Cmd::Neq => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i != j)),
+                        _ => panic!("bad Neq"),
+                    }
+                }
+                Cmd::And => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Bool(j), Value::Bool(i)) => stack.push(Value::Bool(i && j)),
+                        _ => panic!("bad And"),
+                    }
+                }
+                Cmd::Or => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match (v1, v2) {
+                        (Value::Bool(j), Value::Bool(i)) => stack.push(Value::Bool(i || j)),
+                        _ => panic!("bad Or"),
+                    }
+                }
+                Cmd::Neg => {
+                    let v = stack.pop().unwrap();
+                    match v {
+                        Value::Int(i) => stack.push(Value::Int(-i)),
+                        _ => panic!("bad Neg"),
+                    }
+                }
+                Cmd::Not => {
+                    let v = stack.pop().unwrap();
+                    match v {
+                        Value::Bool(i) => stack.push(Value::Bool(!i)),
+                        _ => panic!("bad Not"),
+                    }
+                }
+                Cmd::Access(i) => stack.push(env[i].clone()),
+                Cmd::Closure(c) => stack.push(Value::Clo(c, env.clone())),
+                Cmd::Ifte(c1, c2) => {
+                    let v = stack.pop().unwrap();
+                    match v {
+                        Value::Bool(true) => cmds = c1 + cmds,
+                        Value::Bool(false) => cmds = c2 + cmds,
+                        _ => panic!("bad Ifte"),
+                    }
+                }
+                Cmd::Let => {
+                    let v = stack.pop().unwrap();
+                    env.push_front(v)
+                }
+                Cmd::EndLet => {
+                    env.pop_front();
+                }
+                Cmd::Apply => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match v2.clone() {
+                        Value::Clo(c, e) => {
+                            stack.push(Value::Clo(cmds, env));
+                            cmds = c;
+                            env = e;
+                            env.push_front(v1);
+                            env.push_front(v2);
                         }
+                        _ => panic!("bad Apply"),
                     }
-                    CMD::SUB => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i - j)),
-                            _ => panic!("bad SUB"),
+                }
+                Cmd::Return => {
+                    let v1 = stack.pop().unwrap();
+                    let v2 = stack.pop().unwrap();
+                    match v2 {
+                        Value::Clo(c, e) => {
+                            stack.push(v1);
+                            cmds = c;
+                            env = e;
                         }
+                        _ => panic!("bad Return"),
                     }
-                    CMD::MUL => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i * j)),
-                            _ => panic!("bad MUL"),
-                        }
-                    }
-                    CMD::DIV => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i / j)),
-                            _ => panic!("bad DIV"),
-                        }
-                    }
-                    CMD::LTE => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i <= j)),
-                            _ => panic!("bad LTE"),
-                        }
-                    }
-                    CMD::GTE => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i >= j)),
-                            _ => panic!("bad GTE"),
-                        }
-                    }
-                    CMD::LT => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i < j)),
-                            _ => panic!("bad LT"),
-                        }
-                    }
-                    CMD::GT => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i > j)),
-                            _ => panic!("bad GT"),
-                        }
-                    }
-                    CMD::EQ => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i == j)),
-                            _ => panic!("bad EQ"),
-                        }
-                    }
-                    CMD::NEQ => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i != j)),
-                            _ => panic!("bad NEQ"),
-                        }
-                    }
-                    CMD::AND => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Bool(j), Value::Bool(i)) => stack.push(Value::Bool(i && j)),
-                            _ => panic!("bad AND"),
-                        }
-                    }
-                    CMD::OR => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match (v1, v2) {
-                            (Value::Bool(j), Value::Bool(i)) => stack.push(Value::Bool(i || j)),
-                            _ => panic!("bad OR"),
-                        }
-                    }
-                    CMD::NEG => {
-                        let v = stack.pop().unwrap();
-                        match v {
-                            Value::Int(i) => stack.push(Value::Int(-i)),
-                            _ => panic!("bad NEG"),
-                        }
-                    }
-                    CMD::NOT => {
-                        let v = stack.pop().unwrap();
-                        match v {
-                            Value::Bool(i) => stack.push(Value::Bool(!i)),
-                            _ => panic!("bad NOT"),
-                        }
-                    }
-                    CMD::ACCESS(i) => stack.push(env[i].clone()),
-                    CMD::CLOSURE(c) => stack.push(Value::Clo(c, env.clone())),
-                    CMD::IFTE(c1, c2) => {
-                        let v = stack.pop().unwrap();
-                        match v {
-                            Value::Bool(true) => cmds = c1 + cmds,
-                            Value::Bool(false) => cmds = c2 + cmds,
-                            _ => panic!("bad IFTE"),
-                        }
-                    }
-                    CMD::LET => {
-                        let v = stack.pop().unwrap();
-                        env.push_front(v)
-                    }
-                    CMD::ENDLET => {
-                        env.pop_front();
-                    }
-                    CMD::APPLY => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match v2.clone() {
-                            Value::Clo(c, e) => {
-                                stack.push(Value::Clo(cmds, env));
-                                cmds = c;
-                                env = e;
-                                env.push_front(v1);
-                                env.push_front(v2);
-                            }
-                            _ => panic!("bad APPLY"),
-                        }
-                    }
-                    CMD::RETURN => {
-                        let v1 = stack.pop().unwrap();
-                        let v2 = stack.pop().unwrap();
-                        match v2 {
-                            Value::Clo(c, e) => {
-                                stack.push(v1);
-                                cmds = c;
-                                env = e;
-                            }
-                            _ => panic!("bad RETURN"),
-                        }
-                    }
-                },
-                None => break,
+                }
             }
         }
         stack.pop().unwrap()
