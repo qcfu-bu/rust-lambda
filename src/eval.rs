@@ -5,7 +5,6 @@ use core::panic;
 use derivative::Derivative;
 use im::vector;
 use im::vector::Vector;
-use std::fmt;
 
 #[derive(Clone, Debug)]
 pub enum CMD {
@@ -120,10 +119,10 @@ impl Term {
 
     pub fn run(&self) -> Value {
         let cmds = self.compile(Vector::new());
-        Self::SECD(Vector::new(), Vector::new(), cmds)
+        Self::secd(Vector::new(), Vector::new(), cmds)
     }
 
-    fn SECD(mut stack: Vector<Value>, mut env: Vector<Value>, mut cmds: Vector<CMD>) -> Value {
+    fn secd(mut stack: Vector<Value>, mut env: Vector<Value>, mut cmds: Vector<CMD>) -> Value {
         loop {
             match cmds.pop_front() {
                 Some(cmd) => match cmd {
