@@ -12,7 +12,7 @@ fn main() {
         Ok(mut pairs) => {
             let tm = parse_term(pairs.next().unwrap().into_inner());
             println!("term  : {:?}", tm);
-            println!("value : {:?}", tm.eval(im::HashMap::new()));
+            println!("value : {:?}", tm.run());
         }
         Err(e) => {
             eprintln!("Parse failed: {:?}", e)

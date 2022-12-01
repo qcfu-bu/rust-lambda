@@ -4,4 +4,6 @@ let rec kmccarthy n k :=
       kmccarthy res k)
   else
     k (n - 10)
-in kmccarthy 32 (fun x => x)
+in 
+let mccarthy n := kmccarthy n (fun x => x) in
+mccarthy 23

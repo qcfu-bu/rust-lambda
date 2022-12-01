@@ -13,8 +13,10 @@ opt-level = 3
 opt-level = 3
 
 [dependencies]
+derivative = "2.2.0"
 im = "15.1.0"
 lazy_static = "1.4.0"
 nom = "7.1.1"
 pest = "2.5.0"
 pest_derive = "2.5.0"
+stacker = "0.1.15"
