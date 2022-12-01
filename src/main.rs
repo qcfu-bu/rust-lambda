@@ -4,10 +4,12 @@ mod parse;
 use ast::*;
 use parse::*;
 use pest::Parser;
+use std::env;
 use std::fs;
 
 fn main() {
-    let file = fs::read_to_string("test.txt").expect("cannot read file");
+    let args: Vec<String> = env::args().collect();
+    let file = fs::read_to_string(&args[1]).expect("cannot read file");
     match LamParser::parse(Rule::prog, &file) {
         Ok(mut pairs) => {
             let tm = parse_term(pairs.next().unwrap().into_inner());

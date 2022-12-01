@@ -119,133 +119,129 @@ impl Term {
 
     pub fn run(&self) -> Value {
         let cmds = self.compile(Vector::new());
-        Self::secd(Vector::new(), Vector::new(), cmds)
+        Self::secd(Vec::new(), Vector::new(), cmds)
     }
 
-    fn secd(mut stack: Vector<Value>, mut env: Vector<Value>, mut cmds: Vector<CMD>) -> Value {
+    fn secd(mut stack: Vec<Value>, mut env: Vector<Value>, mut cmds: Vector<CMD>) -> Value {
         loop {
             match cmds.pop_front() {
                 Some(cmd) => match cmd {
-                    CMD::INT(i) => stack.push_front(Value::Int(i)),
-                    CMD::BOOL(b) => stack.push_front(Value::Bool(b)),
+                    CMD::INT(i) => stack.push(Value::Int(i)),
+                    CMD::BOOL(b) => stack.push(Value::Bool(b)),
                     CMD::ADD => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Int(i + j)),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i + j)),
                             _ => panic!("bad ADD"),
                         }
                     }
                     CMD::SUB => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Int(i - j)),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i - j)),
                             _ => panic!("bad SUB"),
                         }
                     }
                     CMD::MUL => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Int(i * j)),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i * j)),
                             _ => panic!("bad MUL"),
                         }
                     }
                     CMD::DIV => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Int(i / j)),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Int(i / j)),
                             _ => panic!("bad DIV"),
                         }
                     }
                     CMD::LTE => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Bool(i <= j)),
-                            _ => panic!("bad DIV"),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i <= j)),
+                            _ => panic!("bad LTE"),
                         }
                     }
                     CMD::GTE => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Bool(i >= j)),
-                            _ => panic!("bad DIV"),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i >= j)),
+                            _ => panic!("bad GTE"),
                         }
                     }
                     CMD::LT => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Bool(i < j)),
-                            _ => panic!("bad DIV"),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i < j)),
+                            _ => panic!("bad LT"),
                         }
                     }
                     CMD::GT => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Bool(i > j)),
-                            _ => panic!("bad DIV"),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i > j)),
+                            _ => panic!("bad GT"),
                         }
                     }
                     CMD::EQ => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Bool(i == j)),
-                            _ => panic!("bad DIV"),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i == j)),
+                            _ => panic!("bad EQ"),
                         }
                     }
                     CMD::NEQ => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Int(j), Value::Int(i)) => stack.push_front(Value::Bool(i != j)),
-                            _ => panic!("bad DIV"),
+                            (Value::Int(j), Value::Int(i)) => stack.push(Value::Bool(i != j)),
+                            _ => panic!("bad NEQ"),
                         }
                     }
                     CMD::AND => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Bool(j), Value::Bool(i)) => {
-                                stack.push_front(Value::Bool(i && j))
-                            }
-                            _ => panic!("bad DIV"),
+                            (Value::Bool(j), Value::Bool(i)) => stack.push(Value::Bool(i && j)),
+                            _ => panic!("bad AND"),
                         }
                     }
                     CMD::OR => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match (v1, v2) {
-                            (Value::Bool(j), Value::Bool(i)) => {
-                                stack.push_front(Value::Bool(i || j))
-                            }
-                            _ => panic!("bad DIV"),
+                            (Value::Bool(j), Value::Bool(i)) => stack.push(Value::Bool(i || j)),
+                            _ => panic!("bad OR"),
                         }
                     }
                     CMD::NEG => {
-                        let v = stack.pop_front().unwrap();
+                        let v = stack.pop().unwrap();
                         match v {
-                            Value::Int(i) => stack.push_front(Value::Int(-i)),
-                            _ => panic!("bad DIV"),
+                            Value::Int(i) => stack.push(Value::Int(-i)),
+                            _ => panic!("bad NEG"),
                         }
                     }
                     CMD::NOT => {
-                        let v = stack.pop_front().unwrap();
+                        let v = stack.pop().unwrap();
                         match v {
-                            Value::Bool(i) => stack.push_front(Value::Bool(!i)),
-                            _ => panic!("bad DIV"),
+                            Value::Bool(i) => stack.push(Value::Bool(!i)),
+                            _ => panic!("bad NOT"),
                         }
                     }
-                    CMD::ACCESS(i) => stack.push_front(env[i].clone()),
-                    CMD::CLOSURE(c) => stack.push_front(Value::Clo(c, env.clone())),
+                    CMD::ACCESS(i) => stack.push(env[i].clone()),
+                    CMD::CLOSURE(c) => stack.push(Value::Clo(c, env.clone())),
                     CMD::IFTE(c1, c2) => {
-                        let v = stack.pop_front().unwrap();
+                        let v = stack.pop().unwrap();
                         match v {
                             Value::Bool(true) => cmds = c1 + cmds,
                             Value::Bool(false) => cmds = c2 + cmds,
@@ -253,18 +249,18 @@ impl Term {
                         }
                     }
                     CMD::LET => {
-                        let v = stack.pop_front().unwrap();
+                        let v = stack.pop().unwrap();
                         env.push_front(v)
                     }
                     CMD::ENDLET => {
                         env.pop_front();
                     }
                     CMD::APPLY => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match v2.clone() {
                             Value::Clo(c, e) => {
-                                stack.push_front(Value::Clo(cmds, env));
+                                stack.push(Value::Clo(cmds, env));
                                 cmds = c;
                                 env = e;
                                 env.push_front(v1);
@@ -274,11 +270,11 @@ impl Term {
                         }
                     }
                     CMD::RETURN => {
-                        let v1 = stack.pop_front().unwrap();
-                        let v2 = stack.pop_front().unwrap();
+                        let v1 = stack.pop().unwrap();
+                        let v2 = stack.pop().unwrap();
                         match v2 {
                             Value::Clo(c, e) => {
-                                stack.push_front(v1);
+                                stack.push(v1);
                                 cmds = c;
                                 env = e;
                             }
@@ -289,6 +285,6 @@ impl Term {
                 None => break,
             }
         }
-        stack.pop_front().unwrap()
+        stack.pop().unwrap()
     }
 }

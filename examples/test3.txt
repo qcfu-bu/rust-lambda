@@ -1,6 +1,6 @@
 let rec kmccarthy n k :=
   if n <= 100 then
-    kmccarthy (n + 11) (fun res => 
+    kmccarthy (n + 11) (fun res =>
       kmccarthy res k)
   else
     k (n - 10)
